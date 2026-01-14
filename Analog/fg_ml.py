@@ -1,5 +1,6 @@
 import torch
 import time
+import numpy as np
 
 class fg_vmm(torch.nn.Module):
     def __init__(self):
@@ -76,7 +77,9 @@ class fg_mlp(fg_vmm):
         self.act = activation
         self.num_in = num_in
         self.num_out = num_out
-        # Construct 2D array of weights and vector of biases
+
+        #Construct 2D array of weights and vector of biases
+
         self.weights = torch.ones(num_out, num_in)*10e-9
         rand_init = torch.randn(num_out, num_in)*9
         self.weights = torch.nn.Parameter(self.weights*rand_init)
@@ -354,6 +357,28 @@ class fg_mnist(torch.nn.Module):
         super().__init__()
         self.mlp_0 = fg_mlp(64,100, activation="sigmoid")
         self.mlp_1 = fg_mlp(100,10, activation="sigmoid")
+    
+    def forward(self, x):
+        layer_0 = self.mlp_0(x)
+        layer_1 = self.mlp_1(layer_0)
+        layer_1 = 4 * (layer_1 - 2.25) / 0.25
+        return layer_1
+    
+    def show_weights(self):
+        print('MLP 0 weights')
+        self.mlp_0.show_weights()
+        print('MLP 1 weights')
+        self.mlp_1.show_weights()
+    
+    def get_mul_time(self):
+        return self.mlp_0.mul_time + self.mlp_1.mul_time
+    
+
+class fg_mnist28(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.mlp_0 = fg_mlp(784,64, activation="sigmoid")
+        self.mlp_1 = fg_mlp(64,10, activation="sigmoid")
     
     def forward(self, x):
         layer_0 = self.mlp_0(x)
